@@ -1,3 +1,4 @@
+from datetime import datetime
 import psutil
 
 from ..decorator import aliased, alias
@@ -42,9 +43,11 @@ class NetworkCollector:
     def _collect_network_connections(self) -> list[NetworkConnection]:
         network_connections = []
         for conn in psutil.net_connections():
+            proc = psutil.Process(conn.pid)
             network_connections.append(
                 NetworkConnection(
                     pid=conn.pid,
+                    creation_time=datetime.fromtimestamp(proc.create_time()),
                     protocol=conn.type.name,
                     local_ip=conn.laddr.ip if conn.laddr else None,
                     local_port=conn.laddr.port if conn.laddr else None,

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 
@@ -46,6 +47,7 @@ class NetworkInterface:
 @dataclass
 class NetworkConnection:
     pid: Optional[int]
+    creation_time: datetime
 
     protocol: str
 

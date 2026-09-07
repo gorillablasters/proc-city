@@ -4,6 +4,8 @@ from datetime import datetime
 from ..comparators.comparator import SnapshotComparator
 from ..events.detector import EventDetector
 from ..model.snapshot import SystemSnapshot
+from ..mapping.mapper import CityMapper
+from ..mapping.layout import CityLayout
 
 
 class SnapshotManager:
@@ -36,18 +38,16 @@ class SnapshotManager:
 
             previous = self.cache.latest
 
-            if previous is None:
+            mapper = CityMapper()
+            mapper.initialize(current)
 
-                print("Initial snapshot")
-
-            else:
-
+            if previous:
                 update = self.comparator.compare(previous, current)
-
                 if update.has_changes:
-                    self.handle_update(update)
                     events = self.event_detector.detect(update)
-                    self.handle_events(events)
+                    mapper.apply_events(events)
+
+            self.show_infrastructure(mapper)
 
             self.cache.add(current)
 
@@ -56,6 +56,39 @@ class SnapshotManager:
             sleep_time = max(0, self.interval - elapsed)
 
             time.sleep(sleep_time)
+
+    def show_infrastructure(self, mapper):
+        print("\n=== CITY ===")
+
+        print("Total nodes:", mapper.city.node_count)
+
+        print("Buildings:", mapper.city.building_count)
+
+        print("Infrastructure:", len(mapper.city.infrastructure))
+
+        print("External nodes:", len(mapper.city.external_nodes))
+
+        print("Roads:", mapper.city.road_count)
+
+        print("\n=== INFRASTRUCTURE ===")
+
+        for node in mapper.city.infrastructure.values():
+
+            print(
+                node.name,
+                "|",
+                node.infrastructure_type,
+                "| utilization:",
+                round(node.utilization, 2),
+                "| activity:",
+                round(node.activity, 2),
+            )
+
+        print("\n=== EXTERNAL ===")
+
+        for node in mapper.city.external_nodes.values():
+
+            print(node.name, "|", node.protocol)
 
     def handle_events(self, events):
 
