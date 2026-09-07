@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+
+PROJECT_SRC_RELATIVE="../src"
+
+PROJECT_SRC_ABSOLUTE=$(realpath "$SCRIPT_DIR/$PROJECT_SRC_RELATIVE")
+
+if [ -d "$PROJECT_SRC_ABSOLUTE" ]; then
+    export PYTHONPATH="$PROJECT_SRC_ABSOLUTE:$PYTHONPATH"
+    echo "Added to PYTHONPATH: $PROJECT_SRC_ABSOLUTE"
+else
+    echo "Error: Directory not found - $PROJECT_SRC_ABSOLUTE"
+    exit 1
+fi   
