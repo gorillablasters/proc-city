@@ -5,6 +5,8 @@ from .road import Road
 from .power import PowerGrid
 from .infrastructure import InfrastructureNode
 from .external import ExternalNode
+from .block import CityBlock
+from .intersection import Intersection
 
 __all__ = [
     "City",
@@ -14,4 +16,6 @@ __all__ = [
     "PowerGrid",
     "InfrastructureNode",
     "ExternalNode",
+    "CityBlock",
+    "Intersection",
 ]

@@ -1,6 +1,6 @@
-from src.collector.system_collector import SystemCollector
-from src.snapshot.manager import SnapshotManager
-from src.snapshot.cache import SnapshotCache
+from backend.collector.system_collector import SystemCollector
+from backend.snapshot.manager import SnapshotManager
+from backend.snapshot.cache import SnapshotCache
 
 
 def main():

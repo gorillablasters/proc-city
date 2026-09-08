@@ -6,6 +6,7 @@ from .rules import get_building_type
 from .relationships import RelationshipMapper
 from .layout import CityLayout
 from ..city.infrastructure import InfrastructureNode
+from .topology import CityTopologyBuilder
 
 
 class CityMapper:
@@ -19,11 +20,16 @@ class CityMapper:
 
         self.layout = CityLayout()
 
+        self.topology = CityTopologyBuilder()
+
     def initialize(self, snapshot):
 
         system = snapshot.system
 
+        self.topology.build(self.city)
+
         for process in system.processes:
+
             self._create_process_building(process)
 
         self.relationships.initialize(system.network)
@@ -254,19 +260,33 @@ class CityMapper:
 
         if system.cpu:
             self.city.power_grid.set_load(system.cpu.overall_percent / 100.0)
+            cpu_node = self.city.get_infrastructure("infrastructure:cpu")
 
-        self.city.metadata = getattr(self.city, "metadata", {})
+            if cpu_node:
+                cpu_node.set_utilization(system.cpu.overall_percent / 100.0)
 
-        self.city.metadata["memory"] = {
-            "total": system.memory.total,
-            "used": system.memory.used,
-            "available": system.memory.available,
-            "percent": system.memory.percent,
-        }
+        memory_node = self.city.get_infrastructure("infrastructure:memory")
 
-        self.city.metadata["gpu_count"] = len(system.gpus)
+        if memory_node:
+            memory_node.set_utilization(system.memory.percent / 100.0)
 
-        self.city.metadata["storage_count"] = len(system.storage)
+        for gpu in system.gpus:
+
+            gpu_node = self.city.get_infrastructure(f"infrastructure:gpu:{gpu.id}")
+
+            if gpu_node:
+                gpu_node.set_utilization(gpu.utilization / 100.0)
+
+        for storage in system.storage:
+
+            storage_id = (
+                f"infrastructure:storage:" f"{storage.device}:" f"{storage.mountpoint}"
+            )
+
+            storage_node = self.city.get_infrastructure(storage_id)
+
+            if storage_node:
+                storage_node.set_utilization(storage.percent / 100.0)
 
     @staticmethod
     def _process_building_id(process_id):
@@ -276,18 +296,15 @@ class CityMapper:
     @staticmethod
     def _process_activity(process):
 
-        values = [
-            process.cpu_percent / 100.0,
-            process.memory_percent / 100.0,
-        ]
+        cpu = min(process.cpu_percent / 100.0, 1.0)
 
-        if process.connections > 0:
-            values.append(0.5)
+        memory = min(process.memory_percent / 100.0, 1.0)
 
-        if process.has_io_activity:
-            values.append(0.5)
+        network = min(process.connections / 10.0, 1.0)
 
-        return min(1.0, max(values))
+        io = min(process.total_io_bytes / (100 * 1024 * 1024), 1.0)
+
+        return max(cpu, memory, network, io)
 
     @staticmethod
     def _event_activity(event):

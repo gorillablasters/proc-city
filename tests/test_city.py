@@ -1,4 +1,4 @@
-from src.city import City, Building, Road
+from backend.city import City, Building, Road
 
 
 def main():

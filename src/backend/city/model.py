@@ -6,6 +6,8 @@ from .road import Road
 from .power import PowerGrid
 from .infrastructure import InfrastructureNode
 from .external import ExternalNode
+from .block import CityBlock
+from .intersection import Intersection
 
 
 @dataclass
@@ -16,6 +18,10 @@ class City:
     roads: dict[str, Road] = field(default_factory=dict)
 
     power_grid: PowerGrid = field(default_factory=PowerGrid)
+
+    blocks: dict[str, CityBlock] = field(default_factory=dict)
+
+    intersections: dict[str, Intersection] = field(default_factory=dict)
 
     metadata: dict = field(default_factory=dict)
 
@@ -86,6 +92,30 @@ class City:
 
         return self.roads.get(road_id)
 
+    def add_block(self, block: CityBlock):
+
+        self.blocks[block.id] = block
+
+    def remove_block(self, block_id: str):
+
+        self.blocks.pop(block_id, None)
+
+    def get_block(self, block_id: str):
+
+        return self.blocks.get(block_id)
+
+    def add_intersection(self, intersection: Intersection):
+
+        self.intersections[intersection.id] = intersection
+
+    def remove_intersection(self, intersection_id: str):
+
+        self.intersections.pop(intersection_id, None)
+
+    def get_intersection(self, intersection_id: str):
+
+        return self.intersections.get(intersection_id)
+
     @property
     def buildings(self):
 
@@ -134,5 +164,8 @@ class City:
         self.roads.clear()
 
         self.power_grid = PowerGrid()
+
+        self.intersections.clear()
+        self.blocks.clear()
 
         self.metadata.clear()
